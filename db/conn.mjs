@@ -1,22 +1,18 @@
-import {MongoClient} from "mongodb";
+import { MongoClient } from "mongodb";
 
 const connectionString = process.env.ATLAS_URL || "";
 
 const client = new MongoClient(connectionString);
 
-
-let db;
-
-async function connectedToDatabase(){
-try{
-    await client.connect();
-    console.log("connected to database");
-    db = client.db("gym_members");
-}catch(error){
-    console.error("not connected to the database". error)
-}
+let conn;
+try {
+  conn = await client.connect();
+  console.log("connected to databasee")
+} catch(e) {
+  console.error(e);
 }
 
-connectedToDatabase()
+let db = conn.db("mern_one");
 
-export default db
+export default db;
+

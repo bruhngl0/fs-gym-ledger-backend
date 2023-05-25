@@ -1,74 +1,63 @@
 import express from "express";
 import db from "../db/conn.mjs";
-import {ObjectId} from "mongodb";  //helps to create a unique id of each document in database.
+import { ObjectId } from "mongodb";
 
+const router = express.Router();
 
-const router = express.Router(); 
-
-//In the above code, express.Router() method is called to create a new router
-// object, which is assigned to the router variable.The router object returned by express.Router() 
-//provides several methods to define routes and middleware, 
-//which include router.get, router.post, etc...
-
-router.get('/', async (req,res)=>{
-    let collection = await db.collection("records");
-    let results = await collection.find({}).toArray();
-    res.send(results).status(200);
+// This section will help you get a list of all the records.
+router.get("/", async (req, res) => {
+  let collection = await db.collection("records");
+  let results = await collection.find({}).toArray();
+  res.send(results).status(200);
 });
 
+// This section will help you get a single record by id
+router.get("/:id", async (req, res) => {
+  let collection = await db.collection("records");
+  let query = {_id: new ObjectId(req.params.id)};
+  let result = await collection.findOne(query);
 
-router.get('/:id', async(res,req)=>{
-    let collection = await db.collection("records");
-    let query = {_id : new ObjectId (req.params.id)};
-    let result = await collection.findOne(query);
-
-
-    if(!result) res.send("Not Found").status(404);
-    else res.send(result).status(200)
+  if (!result) res.send("Not found").status(404);
+  else res.send(result).status(200);
 });
 
-router.post("/", async(req,res)=>{
-    let newDocument = {
-        name: req.body.name,
-        position: req.body.position,
-        level: req.body.level,
+// This section will help you create a new record.
+router.post("/", async (req, res) => {
+  let newDocument = {
+    name: req.body.name,
+    position: req.body.position,
+    level: req.body.level,
+  };
+  let collection = await db.collection("records");
+  let result = await collection.insertOne(newDocument);
+  res.send(result).status(204);
+});
+
+// This section will help you update a record by id.
+router.patch("/:id", async (req, res) => {
+  const query = { _id: new ObjectId(req.params.id) };
+  const updates =  {
+    $set: {
+      name: req.body.name,
+      position: req.body.position,
+      level: req.body.level
     }
+  };
 
-    let collection = await db.collection("records");
-    let result = await collection.insertOne(newDocument)
-    res.send(result).status(204)
-})
+  let collection = await db.collection("records");
+  let result = await collection.updateOne(query, updates);
 
+  res.send(result).status(200);
+});
 
+// This section will help you delete a record
+router.delete("/:id", async (req, res) => {
+  const query = { _id: new ObjectId(req.params.id) };
 
-router.patch("/:id", async(req,res)=>{
-    const query = {_id : new ObjectId(req.param.id)};
-    const updates = {
-        $set: {
-            name: req.body.name,
-            position: req.body.position,
-            level: req.body.level
+  const collection = db.collection("records");
+  let result = await collection.deleteOne(query);
 
-        }
-    }
-
-    let collection = await db.collection("records")
-    let result = await collection.updateOne(query, updates)
-
-    res.send(result).status(200);
-})
-
-router.delete("/:id", async(req,res)=>{
-    const query = {_id : new ObjectId(req.params.id)}
-
-    const collection = db.collection("records")
-    let result = collection.deleteOne(query)
-
-    res.send(result).status(200)
-})
+  res.send(result).status(200);
+});
 
 export default router;
-
-
-
-
